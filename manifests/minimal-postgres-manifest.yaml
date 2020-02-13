@@ -6,6 +6,7 @@ metadata:
 spec:
   teamId: "acid"
   volume:
+    storageClass: "example-nfs"
     size: 1Gi
   numberOfInstances: 2
   users:
