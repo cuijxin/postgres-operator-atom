@@ -1,10 +1,11 @@
 package v1
 
 import (
-	acidzalando "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do"
 )
 
 // APIVersion of the `postgresql` and `operator` CRDs

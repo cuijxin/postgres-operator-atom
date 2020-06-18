@@ -3,8 +3,9 @@ package controller
 import (
 	"time"
 
-	acidv1 "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	acidv1 "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do/v1"
 )
 
 // EventType contains type of the events for the TPRs and Pods received from Kubernetes

@@ -1,6 +1,8 @@
 package apiserver
 
-import "testing"
+import (
+	"testing"
+)
 
 const (
 	clusterStatusTest        = "/clusters/test-id/test_namespace/testcluster/"

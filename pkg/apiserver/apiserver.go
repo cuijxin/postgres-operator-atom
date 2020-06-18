@@ -11,11 +11,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/cuijxin/postgres-operator-atom/pkg/cluster"
 	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
 	"github.com/cuijxin/postgres-operator-atom/pkg/util"
 	"github.com/cuijxin/postgres-operator-atom/pkg/util/config"
-	"github.com/sirupsen/logrus"
 )
 
 const (

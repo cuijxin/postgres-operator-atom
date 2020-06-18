@@ -1,8 +1,15 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+
+	v1 "k8s.io/api/core/v1"
+	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	acidv1 "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do/v1"
 	"github.com/cuijxin/postgres-operator-atom/pkg/cluster"
@@ -10,11 +17,6 @@ import (
 	"github.com/cuijxin/postgres-operator-atom/pkg/util/config"
 	"github.com/cuijxin/postgres-operator-atom/pkg/util/k8sutil"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
-	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func (c *Controller) makeClusterConfig() cluster.Config {
@@ -49,7 +51,7 @@ func (c *Controller) clusterWorkerID(clusterName spec.NamespacedName) uint32 {
 }
 
 func (c *Controller) createOperatorCRD(crd *apiextv1beta1.CustomResourceDefinition) error {
-	if _, err := c.KubeClient.CustomResourceDefinitions().Create(crd); err != nil {
+	if _, err := c.KubeClient.CustomResourceDefinitions().Create(context.TODO(), crd, metav1.CreateOptions{}); err != nil {
 		if k8sutil.ResourceAlreadyExists(err) {
 			c.logger.Infof("customResourceDefinition %q is already registered and will only be updated", crd.Name)
 
@@ -57,7 +59,8 @@ func (c *Controller) createOperatorCRD(crd *apiextv1beta1.CustomResourceDefiniti
 			if err != nil {
 				return fmt.Errorf("could not marshal new customResourceDefintion: %v", err)
 			}
-			if _, err := c.KubeClient.CustomResourceDefinitions().Patch(crd.Name, types.MergePatchType, patch); err != nil {
+			if _, err := c.KubeClient.CustomResourceDefinitions().Patch(
+				context.TODO(), crd.Name, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
 				return fmt.Errorf("could not update customResourceDefinition: %v", err)
 			}
 		} else {
@@ -68,7 +71,7 @@ func (c *Controller) createOperatorCRD(crd *apiextv1beta1.CustomResourceDefiniti
 	}
 
 	return wait.Poll(c.config.CRDReadyWaitInterval, c.config.CRDReadyWaitTimeout, func() (bool, error) {
-		c, err := c.KubeClient.CustomResourceDefinitions().Get(crd.Name, metav1.GetOptions{})
+		c, err := c.KubeClient.CustomResourceDefinitions().Get(context.TODO(), crd.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
@@ -114,7 +117,7 @@ func (c *Controller) getInfrastructureRoles(rolesSecret *spec.NamespacedName) (m
 
 	infraRolesSecret, err := c.KubeClient.
 		Secrets(rolesSecret.Namespace).
-		Get(rolesSecret.Name, metav1.GetOptions{})
+		Get(context.TODO(), rolesSecret.Name, metav1.GetOptions{})
 	if err != nil {
 		c.logger.Debugf("infrastructure roles secret name: %q", *rolesSecret)
 		return nil, fmt.Errorf("could not get infrastructure roles secret: %v", err)
@@ -160,7 +163,8 @@ Users:
 	}
 
 	// perhaps we have some map entries with usernames, passwords, let's check if we have those users in the configmap
-	if infraRolesMap, err := c.KubeClient.ConfigMaps(rolesSecret.Namespace).Get(rolesSecret.Name, metav1.GetOptions{}); err == nil {
+	if infraRolesMap, err := c.KubeClient.ConfigMaps(rolesSecret.Namespace).Get(
+		context.TODO(), rolesSecret.Name, metav1.GetOptions{}); err == nil {
 		// we have a configmap with username - json description, let's read and decode it
 		for role, s := range infraRolesMap.Data {
 			roleDescr, err := readDecodedRole(s)

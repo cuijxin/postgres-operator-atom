@@ -6,6 +6,7 @@ import (
 
 	acidv1 "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do/v1"
 	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -13,9 +14,55 @@ var (
 	False = false
 )
 
-func TestMergeDeprecatedPostgreSQLSpecParameters(t *testing.T) {
-	c := NewController(&spec.ControllerConfig{})
+func newPostgresqlTestController() *Controller {
+	controller := NewController(&spec.ControllerConfig{}, "postgresql-test")
+	return controller
+}
 
+var postgresqlTestController = newPostgresqlTestController()
+
+func TestControllerOwnershipOnPostgresql(t *testing.T) {
+	tests := []struct {
+		name  string
+		pg    *acidv1.Postgresql
+		owned bool
+		error string
+	}{
+		{
+			"Postgres cluster with defined ownership of mocked controller",
+			&acidv1.Postgresql{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{"acid.zalan.do/controller": "postgresql-test"},
+				},
+			},
+			True,
+			"Postgres cluster should be owned by operator, but controller says no",
+		},
+		{
+			"Postgres cluster with defined ownership of another controller",
+			&acidv1.Postgresql{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{"acid.zalan.do/controller": "stups-test"},
+				},
+			},
+			False,
+			"Postgres cluster should be owned by another operator, but controller say yes",
+		},
+		{
+			"Test Postgres cluster without defined ownership",
+			&acidv1.Postgresql{},
+			False,
+			"Postgres cluster should be owned by operator with empty controller ID, but controller says yes",
+		},
+	}
+	for _, tt := range tests {
+		if postgresqlTestController.hasOwnership(tt.pg) != tt.owned {
+			t.Errorf("%s: %v", tt.name, tt.error)
+		}
+	}
+}
+
+func TestMergeDeprecatedPostgreSQLSpecParameters(t *testing.T) {
 	tests := []struct {
 		name  string
 		in    *acidv1.PostgresSpec
@@ -37,7 +84,7 @@ func TestMergeDeprecatedPostgreSQLSpecParameters(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		result := c.mergeDeprecatedPostgreSQLSpecParameters(tt.in)
+		result := postgresqlTestController.mergeDeprecatedPostgreSQLSpecParameters(tt.in)
 		if !reflect.DeepEqual(result, tt.out) {
 			t.Errorf("%s: %v", tt.name, tt.error)
 		}

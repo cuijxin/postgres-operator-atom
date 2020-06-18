@@ -2,11 +2,13 @@ package util
 
 import (
 	"reflect"
-	"regexp"
 	"testing"
 
-	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"regexp"
+
+	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
 )
 
 var pgUsers = []struct {

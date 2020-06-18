@@ -24,6 +24,7 @@ SOFTWARE.
 package v1
 
 import (
+	"context"
 	time "time"
 
 	acidzalandov1 "github.com/cuijxin/postgres-operator-atom/pkg/apis/acid.zalan.do/v1"
@@ -66,13 +67,13 @@ func NewFilteredPostgresqlInformer(client versioned.Interface, namespace string,
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AcidV1().Postgresqls(namespace).List(options)
+				return client.AcidV1().Postgresqls(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AcidV1().Postgresqls(namespace).Watch(options)
+				return client.AcidV1().Postgresqls(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&acidzalandov1.Postgresql{},

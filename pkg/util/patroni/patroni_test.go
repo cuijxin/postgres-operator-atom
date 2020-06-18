@@ -3,9 +3,8 @@ package patroni
 import (
 	"errors"
 	"fmt"
+	"k8s.io/api/core/v1"
 	"testing"
-
-	v1 "k8s.io/api/core/v1"
 )
 
 func newMockPod(ip string) *v1.Pod {

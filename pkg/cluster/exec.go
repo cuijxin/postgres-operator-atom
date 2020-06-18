@@ -2,15 +2,17 @@ package cluster
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
-	"github.com/cuijxin/postgres-operator-atom/pkg/util/constants"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
+
+	"github.com/cuijxin/postgres-operator-atom/pkg/spec"
+	"github.com/cuijxin/postgres-operator-atom/pkg/util/constants"
 )
 
 //ExecCommand executes arbitrary command inside the pod
@@ -22,7 +24,7 @@ func (c *Cluster) ExecCommand(podName *spec.NamespacedName, command ...string) (
 		execErr bytes.Buffer
 	)
 
-	pod, err := c.KubeClient.Pods(podName.Namespace).Get(podName.Name, metav1.GetOptions{})
+	pod, err := c.KubeClient.Pods(podName.Namespace).Get(context.TODO(), podName.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("could not get pod info: %v", err)
 	}
